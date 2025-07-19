@@ -17,7 +17,7 @@ import { motion, Variants } from "framer-motion"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
-import AnimatedBackground from "@/components/Layout/AnimatedBackground";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import { useRouter } from "next/navigation";
 
 export default function Register() {
