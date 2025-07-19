@@ -15,9 +15,13 @@ import {
 import Grid from "@mui/material/Grid"
 import { motion, Variants } from "framer-motion"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+import AnimatedBackground from "@/components/Layout/AnimatedBackground";
+import { useRouter } from "next/navigation";
 
 export default function Register() {
+    const router = useRouter()
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -27,6 +31,7 @@ export default function Register() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [countdown, setCountdown] = useState(3)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -49,17 +54,35 @@ export default function Register() {
             const data = await res.json();
             if (!res.ok) {
                 setError(data.message || "Registration failed");
+                setIsSubmitting(false)
             } else {
-                setSuccess("Registration successful. You can now login.");
+                setSuccess("Registration successful.");
                 setForm({ firstName: '', lastName: '', email: '', password: '' });
+                // setTimeout(() => {
+                //     router.push("/Login")
+                // }, 3000)
             }
         } catch (err) {
             setError("An unexpected error occurred. Please try again.");
             console.error(err)
-        } finally {
             setIsSubmitting(false)
         }
     };
+
+    useEffect(() => {
+        if (!success) return
+
+        if (countdown === 0) {
+            router.push("/Login")
+            return
+        }
+
+        const timerId = setTimeout(() => {
+            setCountdown(countdown - 1)
+        }, 1000)
+
+        return () => clearTimeout(timerId)
+    }, [success, countdown, router])
 
     const formVariants: Variants = {
         hidden: { opacity: 0 },
@@ -85,7 +108,9 @@ export default function Register() {
     }
 
     return (
-        <Container component="main" maxWidth="xs">
+        <>
+            <AnimatedBackground />
+            <Container component="main" maxWidth="xs">
             <Box
                 sx={{
                     minHeight: '100vh',
@@ -135,7 +160,9 @@ export default function Register() {
                         )}
                         {success && (
                             <motion.div variants={itemVariants}>
-                                <Alert severity="success" sx={{ width: '100%' }}>{success}</Alert>
+                                <Alert severity="success" sx={{ width: '100%' }}>
+                                    {`${success} Redirecting in ${countdown}...`}
+                                </Alert>
                             </motion.div>
                         )}
 
@@ -193,10 +220,10 @@ export default function Register() {
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
-                            <Grid container justifyContent="flex-end">
+                            <Grid container justifyContent="center">
                                 <Grid>
                                     <Link href="/Login" style={{ textDecoration: "none" }}>
-                                        <Typography variant="body2" sx={{ color: "black", "&:hover": { textDecoration: "underline" } }}>
+                                        <Typography variant="body2" sx={{ textAlign: "center", color: "black", "&:hover": { textDecoration: "underline" } }}>
                                             Already have an account? Sign In
                                         </Typography>
                                     </Link>
@@ -207,5 +234,6 @@ export default function Register() {
                 </Box>
             </Box>
         </Container>
+        </>
     );
 }
